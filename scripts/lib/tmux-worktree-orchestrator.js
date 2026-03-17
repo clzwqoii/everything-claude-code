@@ -34,18 +34,6 @@ function formatCommand(program, args) {
   return [program, ...args.map(shellQuote)].join(' ');
 }
 
-function buildTemplateVariables(values) {
-  return Object.entries(values).reduce((accumulator, [key, value]) => {
-    const stringValue = String(value);
-    const quotedValue = shellQuote(stringValue);
-
-    accumulator[key] = stringValue;
-    accumulator[`${key}_raw`] = stringValue;
-    accumulator[`${key}_sh`] = quotedValue;
-    return accumulator;
-  }, {});
-}
-
 function buildSessionBannerCommand(sessionName, coordinationDir) {
   return `printf '%s\\n' ${shellQuote(`Session: ${sessionName}`)} ${shellQuote(`Coordination: ${coordinationDir}`)}`;
 }

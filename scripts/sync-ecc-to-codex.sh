@@ -49,7 +49,7 @@ require_path() {
   local p="$1"
   local label="$2"
   if [[ ! -e "$p" ]]; then
-    log "Missing $label: $p"
+    log "缺少 $label：$p"
     exit 1
   fi
 }
@@ -148,11 +148,11 @@ require_path "$SANITY_CHECKER" "ECC global sanity checker"
 require_path "$CURSOR_RULES_DIR" "ECC Cursor rules directory"
 require_path "$CONFIG_FILE" "Codex config.toml"
 
-log "Mode: $MODE"
-log "Repo root: $REPO_ROOT"
-log "Codex home: $CODEX_HOME"
+log "模式：$MODE"
+log "仓库根目录：$REPO_ROOT"
+log "Codex 目录：$CODEX_HOME"
 
-log "Creating backup folder: $BACKUP_DIR"
+log "正在创建备份目录：$BACKUP_DIR"
 run_or_echo "mkdir -p \"$BACKUP_DIR\""
 run_or_echo "cp \"$CONFIG_FILE\" \"$BACKUP_DIR/config.toml\""
 if [[ -f "$AGENTS_FILE" ]]; then
@@ -160,9 +160,9 @@ if [[ -f "$AGENTS_FILE" ]]; then
   run_or_echo "cp \"$AGENTS_FILE\" \"$BACKUP_DIR/AGENTS.md\""
 fi
 
-log "Replacing global AGENTS.md with ECC AGENTS + Codex supplement"
+log "正在用 ECC AGENTS + Codex 补充内容替换全局 AGENTS.md"
 if [[ "$MODE" == "dry-run" ]]; then
-  printf '[dry-run] compose %s from %s + %s\n' "$AGENTS_FILE" "$AGENTS_ROOT_SRC" "$AGENTS_CODEX_SUPP_SRC"
+  printf '[dry-run] 组合 %s，来源：%s + %s\n' "$AGENTS_FILE" "$AGENTS_ROOT_SRC" "$AGENTS_CODEX_SUPP_SRC"
 else
   {
     cat "$AGENTS_ROOT_SRC"
@@ -172,7 +172,7 @@ else
   } > "$AGENTS_FILE"
 fi
 
-log "Syncing ECC Codex skills"
+log "正在同步 ECC Codex 技能"
 run_or_echo "mkdir -p \"$SKILLS_DEST\""
 skills_count=0
   # 中文说明：将 .agents/skills 全量复制到 ~/.codex/skills（逐目录替换）。
@@ -185,12 +185,12 @@ for skill_dir in "$SKILLS_SRC"/*; do
   skills_count=$((skills_count + 1))
 done
 
-log "Generating prompt files from ECC commands"
+log "正在从 ECC 命令生成提示词文件"
 run_or_echo "mkdir -p \"$PROMPTS_DEST\""
 manifest="$PROMPTS_DEST/ecc-prompts-manifest.txt"
   # 中文说明：根据 commands 生成 ecc-*.md 及清单文件。
 if [[ "$MODE" == "dry-run" ]]; then
-  printf '[dry-run] > %s\n' "$manifest"
+  printf '[dry-run] 写入清单文件：%s\n' "$manifest"
 else
   : > "$manifest"
 fi
@@ -201,7 +201,7 @@ while IFS= read -r -d '' command_file; do
   name="$(basename "$command_file" .md)"
   out="$PROMPTS_DEST/ecc-$name.md"
   if [[ "$MODE" == "dry-run" ]]; then
-    printf '[dry-run] generate %s from %s\n' "$out" "$command_file"
+    printf '[dry-run] 生成 %s（来源：%s）\n' "$out" "$command_file"
   else
     generate_prompt_file "$command_file" "$out" "$name"
     printf 'ecc-%s.md\n' "$name" >> "$manifest"
@@ -213,10 +213,10 @@ if [[ "$MODE" == "apply" ]]; then
   sort -u "$manifest" -o "$manifest"
 fi
 
-log "Generating Codex tool prompts + optional rule-pack prompts"
+log "正在生成 Codex 工具提示词与可选规则包提示词"
 extension_manifest="$PROMPTS_DEST/ecc-extension-prompts-manifest.txt"
 if [[ "$MODE" == "dry-run" ]]; then
-  printf '[dry-run] > %s\n' "$extension_manifest"
+  printf '[dry-run] 写入扩展清单文件：%s\n' "$extension_manifest"
 else
   : > "$extension_manifest"
 fi
@@ -227,7 +227,7 @@ write_extension_prompt() {
   local name="$1"
   local file="$PROMPTS_DEST/$name"
   if [[ "$MODE" == "dry-run" ]]; then
-    printf '[dry-run] generate %s\n' "$file"
+    printf '[dry-run] 生成 %s\n' "$file"
   else
     cat > "$file"
     printf '%s\n' "$name" >> "$extension_manifest"
@@ -404,7 +404,7 @@ if [[ "$MODE" == "apply" ]]; then
 fi
 
 if [[ "$MODE" == "apply" ]]; then
-  log "Normalizing MCP server config to pnpm"
+  log "正在将 MCP 服务器配置规范化为 pnpm"
 
   supabase_token="$(extract_toml_value "$CONFIG_FILE" "mcp_servers.supabase.env" "SUPABASE_ACCESS_TOKEN")"
   context7_key="$(extract_context7_key "$CONFIG_FILE")"
@@ -459,10 +459,10 @@ if [[ "$MODE" == "apply" ]]; then
     printf 'args = ["dlx", "@modelcontextprotocol/server-sequential-thinking"]\n'
   } >> "$CONFIG_FILE"
 else
-  log "Skipping MCP config normalization in dry-run mode"
+  log "dry-run 模式下跳过 MCP 配置规范化"
 fi
 
-log "Installing global git safety hooks"
+log "正在安装全局 Git 安全钩子"
 if [[ "$MODE" == "dry-run" ]]; then
   bash "$HOOKS_INSTALLER" --dry-run
 else
@@ -478,7 +478,7 @@ fi
 sanity_profile="${ECC_SANITY_PROFILE:-$sanity_profile_default}"
 sanity_min_prompts="${ECC_EXPECT_MIN_PROMPTS:-$sanity_expected_prompts}"
 
-log "Running global regression sanity check"
+log "正在执行全局回归自检"
 if [[ "$MODE" == "dry-run" ]]; then
   printf '[dry-run] ECC_SANITY_PROFILE=%s ECC_EXPECT_MIN_PROMPTS=%s bash %s\n' "$sanity_profile" "$sanity_min_prompts" "$SANITY_CHECKER"
 else
@@ -486,10 +486,11 @@ else
 fi
 
 log "Sync complete"
-log "Backup saved at: $BACKUP_DIR"
-log "Skills synced: $skills_count"
-log "Prompts generated: $((prompt_count + extension_count)) (commands: $prompt_count, extensions: $extension_count)"
+log "同步完成"
+log "备份已保存到：$BACKUP_DIR"
+log "已同步技能数：$skills_count"
+log "已生成提示词：$((prompt_count + extension_count))（命令：$prompt_count，扩展：$extension_count）"
 
 if [[ "$MODE" == "apply" ]]; then
-  log "Done. Restart Codex CLI to reload AGENTS, prompts, and MCP servers."
+  log "已完成。请重启 Codex CLI 以重新加载 AGENTS、提示词和 MCP 服务器配置。"
 fi
