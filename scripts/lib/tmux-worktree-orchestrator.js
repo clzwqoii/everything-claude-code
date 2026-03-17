@@ -34,6 +34,18 @@ function formatCommand(program, args) {
   return [program, ...args.map(shellQuote)].join(' ');
 }
 
+function buildTemplateVariables(values) {
+  return Object.entries(values).reduce((accumulator, [key, value]) => {
+    const stringValue = String(value);
+    const quotedValue = shellQuote(stringValue);
+
+    accumulator[key] = stringValue;
+    accumulator[`${key}_raw`] = stringValue;
+    accumulator[`${key}_sh`] = quotedValue;
+    return accumulator;
+  }, {});
+}
+
 function buildSessionBannerCommand(sessionName, coordinationDir) {
   return `printf '%s\\n' ${shellQuote(`Session: ${sessionName}`)} ${shellQuote(`Coordination: ${coordinationDir}`)}`;
 }
@@ -173,6 +185,7 @@ function buildOrchestrationPlan(config = {}) {
   const coordinationDir = path.join(coordinationRoot, sessionName);
   const baseRef = config.baseRef || 'HEAD';
   const defaultLauncher = config.launcherCommand || '';
+  const seenWorkerSlugs = new Set();
 
   if (workers.length === 0) {
     throw new Error('buildOrchestrationPlan requires at least one worker');
@@ -185,6 +198,11 @@ function buildOrchestrationPlan(config = {}) {
 
     const workerName = worker.name || `worker-${index + 1}`;
     const workerSlug = slugify(workerName, `worker-${index + 1}`);
+    if (seenWorkerSlugs.has(workerSlug)) {
+      throw new Error(`Worker names must resolve to unique slugs: ${workerSlug}`);
+    }
+    seenWorkerSlugs.add(workerSlug);
+
     const branchName = `orchestrator-${sessionName}-${workerSlug}`;
     const worktreePath = path.join(worktreeRoot, `${repoName}-${sessionName}-${workerSlug}`);
     const workerCoordinationDir = path.join(coordinationDir, workerSlug);
@@ -194,7 +212,7 @@ function buildOrchestrationPlan(config = {}) {
     const launcherCommand = worker.launcherCommand || defaultLauncher;
     const workerSeedPaths = normalizeSeedPaths(worker.seedPaths, repoRoot);
     const seedPaths = normalizeSeedPaths([...globalSeedPaths, ...workerSeedPaths], repoRoot);
-    const templateVariables = {
+    const templateVariables = buildTemplateVariables({
       branch_name: branchName,
       handoff_file: handoffFilePath,
       repo_root: repoRoot,
@@ -204,7 +222,7 @@ function buildOrchestrationPlan(config = {}) {
       worker_name: workerName,
       worker_slug: workerSlug,
       worktree_path: worktreePath
-    };
+    });
 
     if (!launcherCommand) {
       throw new Error(`Worker ${workerName} is missing a launcherCommand`);

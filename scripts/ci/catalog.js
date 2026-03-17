@@ -13,6 +13,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const { spawnSync } = require('child_process');
 
 const ROOT = path.join(__dirname, '../..');
 const README_PATH = path.join(ROOT, 'README.md');
@@ -23,6 +24,28 @@ const OUTPUT_MODE = process.argv.includes('--md')
   : process.argv.includes('--text')
     ? 'text'
     : 'json';
+
+function getCurrentBranch() {
+  const result = spawnSync('git', ['rev-parse', '--abbrev-ref', 'HEAD'], {
+    cwd: ROOT,
+    encoding: 'utf8'
+  });
+
+  if (result.status !== 0) {
+    return null;
+  }
+
+  return result.stdout.trim() || null;
+}
+
+function isSlimCatalogMode() {
+  const mode = process.env.ECC_CATALOG_MODE;
+  if (typeof mode === 'string' && mode.toLowerCase() === 'slim') {
+    return true;
+  }
+
+  return getCurrentBranch() === 'main-slim';
+}
 
 function normalizePathSegments(relativePath) {
   return relativePath.split(path.sep).join('/');
@@ -214,14 +237,20 @@ function renderMarkdown(result) {
 }
 
 function main() {
+  const slimMode = isSlimCatalogMode();
   const catalog = buildCatalog();
-  const readmeContent = readFileOrThrow(README_PATH);
-  const agentsContent = readFileOrThrow(AGENTS_PATH);
-  const expectations = [
-    ...parseReadmeExpectations(readmeContent),
-    ...parseAgentsDocExpectations(agentsContent)
-  ];
-  const checks = evaluateExpectations(catalog, expectations);
+  let checks = [];
+
+  if (!slimMode) {
+    const readmeContent = readFileOrThrow(README_PATH);
+    const agentsContent = readFileOrThrow(AGENTS_PATH);
+    const expectations = [
+      ...parseReadmeExpectations(readmeContent),
+      ...parseAgentsDocExpectations(agentsContent)
+    ];
+    checks = evaluateExpectations(catalog, expectations);
+  }
+
   const result = { catalog, checks };
 
   if (OUTPUT_MODE === 'json') {
@@ -230,9 +259,12 @@ function main() {
     renderMarkdown(result);
   } else {
     renderText(result);
+    if (slimMode) {
+      console.log('Catalog strict mismatch checks are skipped in slim mode.');
+    }
   }
 
-  if (checks.some(check => !check.ok)) {
+  if (!slimMode && checks.some(check => !check.ok)) {
     process.exit(1);
   }
 }

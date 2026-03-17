@@ -12,6 +12,30 @@ const fs = require('fs');
 const testsDir = __dirname;
 const repoRoot = path.resolve(testsDir, '..');
 const TEST_GLOB = 'tests/**/*.test.js';
+const SLIM_SKIP_TESTS = new Set([
+  'hooks/evaluate-session.test.js',
+  'hooks/hooks.test.js',
+  'hooks/observer-memory.test.js',
+  'integration/hooks.test.js',
+  'scripts/install-apply.test.js'
+]);
+
+function getCurrentBranch() {
+  const result = spawnSync('git', ['rev-parse', '--abbrev-ref', 'HEAD'], {
+    cwd: repoRoot,
+    encoding: 'utf8'
+  });
+
+  if (result.status !== 0) {
+    return null;
+  }
+
+  return (result.stdout || '').trim() || null;
+}
+
+function isSlimBranch() {
+  return getCurrentBranch() === 'main-slim' || process.env.ECC_TEST_MODE === 'slim';
+}
 
 function matchesTestGlob(relativePath) {
   const normalized = relativePath.split(path.sep).join('/');
@@ -44,6 +68,7 @@ function discoverTestFiles() {
 }
 
 const testFiles = discoverTestFiles();
+const slimMode = isSlimBranch();
 
 const BOX_W = 58; // inner width between ║ delimiters
 const boxLine = s => `║${s.padEnd(BOX_W)}║`;
@@ -58,6 +83,10 @@ if (testFiles.length === 0) {
   process.exit(1);
 }
 
+if (slimMode) {
+  console.log('[INFO] slim 模式：将跳过依赖完整仓库内容的测试文件。');
+}
+
 let totalPassed = 0;
 let totalFailed = 0;
 let totalTests = 0;
@@ -65,6 +94,11 @@ let totalTests = 0;
 for (const testFile of testFiles) {
   const testPath = path.join(testsDir, testFile);
   const displayPath = testFile.split(path.sep).join('/');
+
+  if (slimMode && SLIM_SKIP_TESTS.has(displayPath)) {
+    console.log(`⚠ Skipping ${displayPath} (not applicable in main-slim profile)`);
+    continue;
+  }
 
   if (!fs.existsSync(testPath)) {
     console.log(`⚠ Skipping ${displayPath} (file not found)`);

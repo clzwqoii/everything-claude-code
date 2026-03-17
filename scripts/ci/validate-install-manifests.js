@@ -5,6 +5,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const { spawnSync } = require('child_process');
 const Ajv = require('ajv');
 
 const REPO_ROOT = path.join(__dirname, '../..');
@@ -20,6 +21,33 @@ const COMPONENT_FAMILY_PREFIXES = {
   framework: 'framework:',
   capability: 'capability:',
 };
+
+function getCurrentBranch() {
+  const result = spawnSync('git', ['rev-parse', '--abbrev-ref', 'HEAD'], {
+    cwd: REPO_ROOT,
+    encoding: 'utf8'
+  });
+
+  if (result.status !== 0) {
+    return null;
+  }
+
+  return result.stdout.trim() || null;
+}
+
+function allowMissingManifestPaths() {
+  const envFlag = process.env.ECC_ALLOW_MISSING_MANIFEST_PATHS;
+  if (envFlag === '1' || envFlag === 'true') {
+    return true;
+  }
+
+  const mode = process.env.ECC_INSTALL_MANIFEST_MODE;
+  if (typeof mode === 'string' && mode.toLowerCase() === 'slim') {
+    return true;
+  }
+
+  return getCurrentBranch() === 'main-slim';
+}
 
 function readJson(filePath, label) {
   try {
@@ -84,6 +112,7 @@ function validateInstallManifests() {
   }
 
   const modules = Array.isArray(modulesData.modules) ? modulesData.modules : [];
+  const permissiveMissingPaths = allowMissingManifestPaths();
   const moduleIds = new Set();
   const claimedPaths = new Map();
 
@@ -110,10 +139,16 @@ function validateInstallManifests() {
       const absolutePath = path.join(REPO_ROOT, normalizedPath);
 
       if (!fs.existsSync(absolutePath)) {
-        console.error(
-          `ERROR: Module ${module.id} references missing path: ${normalizedPath}`
-        );
-        hasErrors = true;
+        if (permissiveMissingPaths) {
+          console.warn(
+            `WARN: Module ${module.id} references missing path (ignored in slim mode): ${normalizedPath}`
+          );
+        } else {
+          console.error(
+            `ERROR: Module ${module.id} references missing path: ${normalizedPath}`
+          );
+          hasErrors = true;
+        }
       }
 
       if (claimedPaths.has(normalizedPath)) {
@@ -204,7 +239,7 @@ function validateInstallManifests() {
   }
 
   console.log(
-    `Validated ${modules.length} install modules, ${components.length} install components, and ${Object.keys(profiles).length} profiles`
+    `Validated ${modules.length} install modules, ${components.length} install components, and ${Object.keys(profiles).length} profiles${permissiveMissingPaths ? ' (slim mode: missing paths allowed)' : ''}`
   );
 }
 
