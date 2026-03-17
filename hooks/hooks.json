@@ -10,7 +10,7 @@
             "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/auto-tmux-dev.js\""
           }
         ],
-        "description": "Auto-start dev servers in tmux with directory-based session names"
+        "description": "根据目录名在 tmux 中自动启动开发服务并创建会话"
       },
       {
         "matcher": "Bash",
@@ -20,7 +20,7 @@
             "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"pre:bash:tmux-reminder\" \"scripts/hooks/pre-bash-tmux-reminder.js\" \"strict\""
           }
         ],
-        "description": "Reminder to use tmux for long-running commands"
+        "description": "提醒长时间运行的命令使用 tmux"
       },
       {
         "matcher": "Bash",
@@ -30,7 +30,7 @@
             "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"pre:bash:git-push-reminder\" \"scripts/hooks/pre-bash-git-push-reminder.js\" \"strict\""
           }
         ],
-        "description": "Reminder before git push to review changes"
+        "description": "在 git push 前提醒先复查改动"
       },
       {
         "matcher": "Write",
@@ -40,7 +40,7 @@
             "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"pre:write:doc-file-warning\" \"scripts/hooks/doc-file-warning.js\" \"standard,strict\""
           }
         ],
-        "description": "Doc file warning: warn about non-standard documentation files (exit code 0; warns only)"
+        "description": "文档文件告警：提示非标准文档文件（退出码 0，仅告警）"
       },
       {
         "matcher": "Edit|Write",
@@ -50,7 +50,7 @@
             "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"pre:edit-write:suggest-compact\" \"scripts/hooks/suggest-compact.js\" \"standard,strict\""
           }
         ],
-        "description": "Suggest manual compaction at logical intervals"
+        "description": "在合适阶段建议手动压缩上下文"
       },
       {
         "matcher": "*",
@@ -62,7 +62,7 @@
             "timeout": 10
           }
         ],
-        "description": "Capture tool use observations for continuous learning"
+        "description": "采集工具使用观察数据用于持续学习"
       },
       {
         "matcher": "Bash|Write|Edit|MultiEdit",
@@ -73,7 +73,7 @@
             "timeout": 15
           }
         ],
-        "description": "Optional InsAIts AI security monitor for Bash/Edit/Write flows. Enable with ECC_ENABLE_INSAITS=1. Requires: pip install insa-its"
+        "description": "可选 InsAIts AI 安全监控（Bash/Edit/Write 流程）。通过 ECC_ENABLE_INSAITS=1 启用。依赖：pip install insa-its"
       }
     ],
     "PreCompact": [
@@ -85,7 +85,7 @@
             "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"pre:compact\" \"scripts/hooks/pre-compact.js\" \"standard,strict\""
           }
         ],
-        "description": "Save state before context compaction"
+        "description": "在上下文压缩前保存状态"
       }
     ],
     "SessionStart": [
@@ -97,7 +97,7 @@
             "command": "bash -lc 'input=$(cat); for root in \"${CLAUDE_PLUGIN_ROOT:-}\" \"$HOME/.claude/plugins/everything-claude-code\" \"$HOME/.claude/plugins/everything-claude-code@everything-claude-code\" \"$HOME/.claude/plugins/marketplace/everything-claude-code\"; do if [ -n \"$root\" ] && [ -f \"$root/scripts/hooks/run-with-flags.js\" ]; then printf \"%s\" \"$input\" | node \"$root/scripts/hooks/run-with-flags.js\" \"session:start\" \"scripts/hooks/session-start.js\" \"minimal,standard,strict\"; exit $?; fi; done; for parent in \"$HOME/.claude/plugins\" \"$HOME/.claude/plugins/marketplace\"; do if [ -d \"$parent\" ]; then candidate=$(find \"$parent\" -maxdepth 2 -type f -path \"*/scripts/hooks/run-with-flags.js\" 2>/dev/null | head -n 1); if [ -n \"$candidate\" ]; then root=$(dirname \"$(dirname \"$(dirname \"$candidate\")\")\"); printf \"%s\" \"$input\" | node \"$root/scripts/hooks/run-with-flags.js\" \"session:start\" \"scripts/hooks/session-start.js\" \"minimal,standard,strict\"; exit $?; fi; fi; done; echo \"[SessionStart] WARNING: could not resolve ECC plugin root; skipping session-start hook\" >&2; printf \"%s\" \"$input\"; exit 0'"
           }
         ],
-        "description": "Load previous context and detect package manager on new session"
+        "description": "在新会话加载历史上下文并检测包管理器"
       }
     ],
     "PostToolUse": [
@@ -109,7 +109,7 @@
             "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"post:bash:pr-created\" \"scripts/hooks/post-bash-pr-created.js\" \"standard,strict\""
           }
         ],
-        "description": "Log PR URL and provide review command after PR creation"
+        "description": "创建 PR 后记录 URL 并提供审查命令"
       },
       {
         "matcher": "Bash",
@@ -121,7 +121,7 @@
             "timeout": 30
           }
         ],
-        "description": "Example: async hook for build analysis (runs in background without blocking)"
+        "description": "示例：用于构建分析的异步钩子（后台运行且不阻塞）"
       },
       {
         "matcher": "Edit|Write|MultiEdit",
@@ -133,7 +133,7 @@
             "timeout": 30
           }
         ],
-        "description": "Run quality gate checks after file edits"
+        "description": "文件编辑后运行质量门检查"
       },
       {
         "matcher": "Edit",
@@ -143,7 +143,7 @@
             "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"post:edit:format\" \"scripts/hooks/post-edit-format.js\" \"standard,strict\""
           }
         ],
-        "description": "Auto-format JS/TS files after edits (auto-detects Biome or Prettier)"
+        "description": "编辑后自动格式化 JS/TS 文件（自动检测 Biome 或 Prettier）"
       },
       {
         "matcher": "Edit",
@@ -153,7 +153,7 @@
             "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"post:edit:typecheck\" \"scripts/hooks/post-edit-typecheck.js\" \"standard,strict\""
           }
         ],
-        "description": "TypeScript check after editing .ts/.tsx files"
+        "description": "编辑 .ts/.tsx 文件后执行 TypeScript 检查"
       },
       {
         "matcher": "Edit",
@@ -163,7 +163,7 @@
             "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"post:edit:console-warn\" \"scripts/hooks/post-edit-console-warn.js\" \"standard,strict\""
           }
         ],
-        "description": "Warn about console.log statements after edits"
+        "description": "编辑后提示存在 console.log 语句"
       },
       {
         "matcher": "*",
@@ -175,7 +175,7 @@
             "timeout": 10
           }
         ],
-        "description": "Capture tool use results for continuous learning"
+        "description": "采集工具执行结果用于持续学习"
       }
     ],
     "Stop": [
@@ -187,7 +187,7 @@
             "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"stop:check-console-log\" \"scripts/hooks/check-console-log.js\" \"standard,strict\""
           }
         ],
-        "description": "Check for console.log in modified files after each response"
+        "description": "每次响应后检查改动文件中的 console.log"
       },
       {
         "matcher": "*",
@@ -199,7 +199,7 @@
             "timeout": 10
           }
         ],
-        "description": "Persist session state after each response (Stop carries transcript_path)"
+        "description": "每次响应后持久化会话状态（Stop 事件携带 transcript_path）"
       },
       {
         "matcher": "*",
@@ -211,7 +211,7 @@
             "timeout": 10
           }
         ],
-        "description": "Evaluate session for extractable patterns"
+        "description": "评估会话中可提取的模式"
       },
       {
         "matcher": "*",
@@ -223,7 +223,7 @@
             "timeout": 10
           }
         ],
-        "description": "Track token and cost metrics per session"
+        "description": "按会话跟踪 token 与成本指标"
       }
     ],
     "SessionEnd": [
@@ -237,7 +237,7 @@
             "timeout": 10
           }
         ],
-        "description": "Session end lifecycle marker (non-blocking)"
+        "description": "会话结束生命周期标记（非阻塞）"
       }
     ]
   }

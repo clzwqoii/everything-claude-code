@@ -3,6 +3,7 @@ set -euo pipefail
 
 # Release script for bumping plugin version
 # Usage: ./scripts/release.sh VERSION
+# 中文说明：用于统一升级版本号并执行提交、打 tag、推送。
 
 VERSION="${1:-}"
 ROOT_PACKAGE_JSON="package.json"
@@ -12,6 +13,7 @@ OPENCODE_PACKAGE_JSON=".opencode/package.json"
 
 # Function to show usage
 usage() {
+  # 中文说明：参数不合法时输出帮助并退出。
   echo "Usage: $0 VERSION"
   echo "Example: $0 1.5.0"
   exit 1
@@ -37,6 +39,7 @@ if [[ "$CURRENT_BRANCH" != "main" ]]; then
 fi
 
 # Check working tree is clean
+# 中文说明：发布前要求工作区干净，避免夹带未提交变更。
 if ! git diff --quiet || ! git diff --cached --quiet; then
   echo "Error: Working tree is not clean. Commit or stash changes first."
   exit 1
@@ -59,6 +62,7 @@ fi
 echo "Bumping version: $OLD_VERSION -> $VERSION"
 
 update_version() {
+  # 中文说明：兼容 macOS 与 Linux 的 sed -i 差异。
   local file="$1"
   local pattern="$2"
   if [[ "$OSTYPE" == "darwin"* ]]; then
@@ -75,6 +79,7 @@ update_version "$MARKETPLACE_JSON" "0,/\"version\": *\"[^\"]*\"/s|\"version\": *
 update_version "$OPENCODE_PACKAGE_JSON" "s|\"version\": *\"[^\"]*\"|\"version\": \"$VERSION\"|"
 
 # Stage, commit, tag, and push
+# 中文说明：发布链路：暂存 -> 提交 -> 打标签 -> 推送分支与标签。
 git add "$ROOT_PACKAGE_JSON" "$PLUGIN_JSON" "$MARKETPLACE_JSON" "$OPENCODE_PACKAGE_JSON"
 git commit -m "chore: bump plugin version to $VERSION"
 git tag "v$VERSION"

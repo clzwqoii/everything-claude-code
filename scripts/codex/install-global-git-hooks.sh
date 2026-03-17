@@ -5,6 +5,7 @@ set -euo pipefail
 # Usage:
 #   ./scripts/codex/install-global-git-hooks.sh
 #   ./scripts/codex/install-global-git-hooks.sh --dry-run
+# 中文说明：将 ECC 提供的 pre-commit / pre-push 以全局方式安装到 core.hooksPath。
 
 MODE="apply"
 if [[ "${1:-}" == "--dry-run" ]]; then
@@ -19,10 +20,12 @@ STAMP="$(date +%Y%m%d-%H%M%S)"
 BACKUP_DIR="$HOME/.codex/backups/git-hooks-$STAMP"
 
 log() {
+  # 中文说明：统一日志前缀，便于识别脚本输出来源。
   printf '[ecc-hooks] %s\n' "$*"
 }
 
 run_or_echo() {
+  # 中文说明：dry-run 模式只打印命令，apply 模式实际执行。
   if [[ "$MODE" == "dry-run" ]]; then
     printf '[dry-run] %s\n' "$*"
   else
@@ -40,6 +43,7 @@ log "Source hooks: $SOURCE_DIR"
 log "Global hooks destination: $DEST_DIR"
 
 if [[ -d "$DEST_DIR" ]]; then
+  # 中文说明：若目标目录已存在，先做时间戳备份，避免覆盖丢失。
   log "Backing up existing hooks directory to $BACKUP_DIR"
   run_or_echo "mkdir -p \"$BACKUP_DIR\""
   run_or_echo "cp -R \"$DEST_DIR\" \"$BACKUP_DIR/hooks\""

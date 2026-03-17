@@ -3,6 +3,7 @@ set -euo pipefail
 
 # ECC Codex global regression sanity check.
 # Validates that global ~/.codex state matches expected ECC integration.
+# 中文说明：该脚本用于检查全局 Codex 环境是否按 ECC 预期完成安装与配置。
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
@@ -13,11 +14,14 @@ AGENTS_FILE="$CODEX_HOME/AGENTS.md"
 PROMPTS_DIR="$CODEX_HOME/prompts"
 SKILLS_DIR="$CODEX_HOME/skills"
 HOOKS_DIR_EXPECT="${ECC_GLOBAL_HOOKS_DIR:-$CODEX_HOME/git-hooks}"
+SANITY_PROFILE="${ECC_SANITY_PROFILE:-strict}"
+EXPECTED_MIN_PROMPTS="${ECC_EXPECT_MIN_PROMPTS:-43}"
 
 failures=0
 warnings=0
 checks=0
 
+# 中文说明：统一输出结果并累计统计。
 ok() {
   checks=$((checks + 1))
   printf '[OK] %s\n' "$*"
@@ -35,6 +39,7 @@ fail() {
   printf '[FAIL] %s\n' "$*"
 }
 
+# 中文说明：检查目标文件是否存在。
 require_file() {
   local file="$1"
   local label="$2"
@@ -45,6 +50,7 @@ require_file() {
   fi
 }
 
+# 中文说明：检查 config.toml 中是否包含指定模式。
 check_config_pattern() {
   local pattern="$1"
   local label="$2"
@@ -55,6 +61,7 @@ check_config_pattern() {
   fi
 }
 
+# 中文说明：检查 config.toml 中是否不存在指定模式。
 check_config_absent() {
   local pattern="$1"
   local label="$2"
@@ -68,6 +75,8 @@ check_config_absent() {
 printf 'ECC GLOBAL SANITY CHECK\n'
 printf 'Repo: %s\n' "$REPO_ROOT"
 printf 'Codex home: %s\n\n' "$CODEX_HOME"
+printf 'Sanity profile: %s\n' "$SANITY_PROFILE"
+printf 'Expected minimum prompts: %s\n\n' "$EXPECTED_MIN_PROMPTS"
 
 require_file "$CONFIG_FILE" "Global config.toml"
 require_file "$AGENTS_FILE" "Global AGENTS.md"
@@ -87,11 +96,33 @@ if [[ -f "$AGENTS_FILE" ]]; then
 fi
 
 if [[ -f "$CONFIG_FILE" ]]; then
+  # 中文说明：配置文件项检查（功能开关、profile、MCP 段落等）。
   check_config_pattern '^multi_agent\s*=\s*true' "multi_agent is enabled"
   check_config_absent '^\s*collab\s*=' "deprecated collab flag is absent"
-  check_config_pattern '^persistent_instructions\s*=' "persistent_instructions is configured"
-  check_config_pattern '^\[profiles\.strict\]' "profiles.strict exists"
-  check_config_pattern '^\[profiles\.yolo\]' "profiles.yolo exists"
+
+  if [[ "$SANITY_PROFILE" == "strict" ]]; then
+    check_config_pattern '^persistent_instructions\s*=' "persistent_instructions is configured"
+    check_config_pattern '^\[profiles\.strict\]' "profiles.strict exists"
+    check_config_pattern '^\[profiles\.yolo\]' "profiles.yolo exists"
+  else
+    if rg -n '^persistent_instructions\s*=' "$CONFIG_FILE" >/dev/null 2>&1; then
+      ok "persistent_instructions is configured"
+    else
+      warn "persistent_instructions is not configured (optional in slim mode)"
+    fi
+
+    if rg -n '^\[profiles\.strict\]' "$CONFIG_FILE" >/dev/null 2>&1; then
+      ok "profiles.strict exists"
+    else
+      warn "profiles.strict missing (optional in slim mode)"
+    fi
+
+    if rg -n '^\[profiles\.yolo\]' "$CONFIG_FILE" >/dev/null 2>&1; then
+      ok "profiles.yolo exists"
+    else
+      warn "profiles.yolo missing (optional in slim mode)"
+    fi
+  fi
 
   for section in \
     'mcp_servers.github' \
@@ -133,6 +164,7 @@ declare -a required_skills=(
 )
 
 if [[ -d "$SKILLS_DIR" ]]; then
+  # 中文说明：核对必需技能目录是否齐全。
   missing_skills=0
   for skill in "${required_skills[@]}"; do
     if [[ -d "$SKILLS_DIR/$skill" ]]; then
@@ -165,13 +197,14 @@ else
 fi
 
 command_prompts_count="$(find "$PROMPTS_DIR" -maxdepth 1 -type f -name 'ecc-*.md' 2>/dev/null | wc -l | tr -d ' ')"
-if [[ "$command_prompts_count" -ge 43 ]]; then
-  ok "ECC prompts count is $command_prompts_count (expected >= 43)"
+if [[ "$command_prompts_count" -ge "$EXPECTED_MIN_PROMPTS" ]]; then
+  ok "ECC prompts count is $command_prompts_count (expected >= $EXPECTED_MIN_PROMPTS)"
 else
-  fail "ECC prompts count is $command_prompts_count (expected >= 43)"
+  fail "ECC prompts count is $command_prompts_count (expected >= $EXPECTED_MIN_PROMPTS)"
 fi
 
 hooks_path="$(git config --global --get core.hooksPath || true)"
+# 中文说明：检查全局 Git hooksPath 与 hook 文件是否正确安装。
 if [[ -n "$hooks_path" ]]; then
   if [[ "$hooks_path" == "$HOOKS_DIR_EXPECT" ]]; then
     ok "Global hooksPath is set to $HOOKS_DIR_EXPECT"

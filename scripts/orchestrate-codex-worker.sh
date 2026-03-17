@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# 中文说明：该脚本在独立 worktree 中驱动 codex worker 执行任务，
+# 并统一产出 status/handoff 文件以供编排层消费。
+
 if [[ $# -ne 3 ]]; then
   echo "Usage: bash scripts/orchestrate-codex-worker.sh <task-file> <handoff-file> <status-file>" >&2
   exit 1
@@ -11,10 +14,12 @@ handoff_file="$2"
 status_file="$3"
 
 timestamp() {
+  # 中文说明：统一 UTC 时间格式，便于跨环境追踪。
   date -u +"%Y-%m-%dT%H:%M:%SZ"
 }
 
 write_status() {
+  # 中文说明：将当前状态落盘，供外部轮询或展示。
   local state="$1"
   local details="$2"
 
@@ -33,6 +38,7 @@ EOF
 mkdir -p "$(dirname "$handoff_file")" "$(dirname "$status_file")"
 
 if [[ ! -r "$task_file" ]]; then
+  # 中文说明：任务文件不可读时，写入失败状态与交接信息后退出。
   write_status "failed" "- Error: task file is missing or unreadable (\`$task_file\`)"
   {
     echo "# Handoff"
@@ -78,6 +84,7 @@ $(cat "$task_file")
 EOF
 
 if codex exec -p yolo -m gpt-5.4 --color never -C "$(pwd)" -o "$output_file" - < "$prompt_file"; then
+  # 中文说明：worker 成功时，写入完整 handoff 和当前 git 状态。
   {
     echo "# Handoff"
     echo
@@ -93,6 +100,7 @@ if codex exec -p yolo -m gpt-5.4 --color never -C "$(pwd)" -o "$output_file" - <
   } > "$handoff_file"
   write_status "completed" "- Handoff file: \`$handoff_file\`"
 else
+  # 中文说明：worker 失败时，仍写入失败 handoff，便于定位问题。
   {
     echo "# Handoff"
     echo

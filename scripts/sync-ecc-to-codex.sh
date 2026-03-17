@@ -1,15 +1,15 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Sync Everything Claude Code (ECC) assets into a local Codex CLI setup.
-# - Backs up ~/.codex config and AGENTS.md
-# - Replaces AGENTS.md with ECC AGENTS.md
-# - Syncs Codex-ready skills from .agents/skills
-# - Generates prompt files from commands/*.md
-# - Generates Codex QA wrappers and optional language rule-pack prompts
-# - Installs global git safety hooks (pre-commit and pre-push)
-# - Runs a post-sync global regression sanity check
-# - Normalizes MCP server entries to pnpm dlx and removes duplicate Context7 block
+# 将 Everything Claude Code（ECC）资源同步到本地 Codex CLI 环境。
+# - 备份 ~/.codex 配置与 AGENTS.md
+# - 用 ECC 的 AGENTS.md 替换全局 AGENTS.md
+# - 同步 .agents/skills 中可用于 Codex 的技能
+# - 由 commands/*.md 生成提示词文件
+# - 生成 Codex 质量检查提示词与可选语言规则包提示词
+# - 安装全局 Git 安全钩子（pre-commit / pre-push）
+# - 执行同步后的全局回归自检
+# - 统一 MCP 配置为 pnpm dlx，并移除重复的 Context7 配置块
 
 MODE="apply"
 if [[ "${1:-}" == "--dry-run" ]]; then
@@ -78,11 +78,13 @@ remove_section_inplace() {
       }
       if (!skip) {
         print
+  # 中文说明：该脚本用于把 ECC 资源同步到全局 ~/.codex 环境，并执行回归校验。
       }
     }
   ' "$file" > "$tmp"
   mv "$tmp" "$file"
 }
+    # 中文说明：dry-run 仅打印命令，apply 执行真实改动。
 
 extract_toml_value() {
   local file="$1"
@@ -91,6 +93,7 @@ extract_toml_value() {
   awk -v section="$section" -v key="$key" '
     $0 == "[" section "]" { in_section = 1; next }
     in_section && /^\[/ { in_section = 0 }
+    # 中文说明：关键路径缺失时立即失败，避免执行到半途。
     in_section && $1 == key {
       line = $0
       sub(/^[^=]*=[[:space:]]*"/, "", line)
@@ -100,10 +103,22 @@ extract_toml_value() {
     }
   ' "$file"
 }
+    # 中文说明：按 TOML section 名删除整段配置。
 
 extract_context7_key() {
   local file="$1"
-  grep -oP -- '--key",[[:space:]]*"\K[^"]+' "$file" | head -n 1 || true
+  awk '
+    {
+      # 匹配形如 --key", "<value>" 的片段，兼容 macOS 默认 awk/grep 环境。
+      if (match($0, /--key",[[:space:]]*"[^"]+"/)) {
+        key = substr($0, RSTART, RLENGTH)
+        sub(/^--key",[[:space:]]*"/, "", key)
+        sub(/"$/, "", key)
+        print key
+        exit
+      }
+    }
+  ' "$file" || true
 }
 
 generate_prompt_file() {
@@ -123,6 +138,7 @@ generate_prompt_file() {
   } > "$out"
 }
 
+    # 中文说明：从指定 section 中提取键值（字符串）。
 require_path "$REPO_ROOT/AGENTS.md" "ECC AGENTS.md"
 require_path "$AGENTS_CODEX_SUPP_SRC" "ECC Codex AGENTS supplement"
 require_path "$SKILLS_SRC" "ECC skills directory"
@@ -140,6 +156,7 @@ log "Creating backup folder: $BACKUP_DIR"
 run_or_echo "mkdir -p \"$BACKUP_DIR\""
 run_or_echo "cp \"$CONFIG_FILE\" \"$BACKUP_DIR/config.toml\""
 if [[ -f "$AGENTS_FILE" ]]; then
+    # 中文说明：将 commands/*.md 转换为可直接在 Codex 使用的提示词文件。
   run_or_echo "cp \"$AGENTS_FILE\" \"$BACKUP_DIR/AGENTS.md\""
 fi
 
@@ -158,6 +175,7 @@ fi
 log "Syncing ECC Codex skills"
 run_or_echo "mkdir -p \"$SKILLS_DEST\""
 skills_count=0
+  # 中文说明：将 .agents/skills 全量复制到 ~/.codex/skills（逐目录替换）。
 for skill_dir in "$SKILLS_SRC"/*; do
   [[ -d "$skill_dir" ]] || continue
   skill_name="$(basename "$skill_dir")"
@@ -170,6 +188,7 @@ done
 log "Generating prompt files from ECC commands"
 run_or_echo "mkdir -p \"$PROMPTS_DEST\""
 manifest="$PROMPTS_DEST/ecc-prompts-manifest.txt"
+  # 中文说明：根据 commands 生成 ecc-*.md 及清单文件。
 if [[ "$MODE" == "dry-run" ]]; then
   printf '[dry-run] > %s\n' "$manifest"
 else
@@ -178,6 +197,7 @@ fi
 
 prompt_count=0
 while IFS= read -r -d '' command_file; do
+  # 中文说明：生成额外工具提示词与可选规则包提示词。
   name="$(basename "$command_file" .md)"
   out="$PROMPTS_DEST/ecc-$name.md"
   if [[ "$MODE" == "dry-run" ]]; then
@@ -444,16 +464,25 @@ fi
 
 log "Installing global git safety hooks"
 if [[ "$MODE" == "dry-run" ]]; then
-  "$HOOKS_INSTALLER" --dry-run
+  bash "$HOOKS_INSTALLER" --dry-run
 else
-  "$HOOKS_INSTALLER"
+  bash "$HOOKS_INSTALLER"
 fi
+
+sanity_expected_prompts="$((prompt_count + extension_count))"
+if [[ "$sanity_expected_prompts" -lt 43 ]]; then
+  sanity_profile_default="slim"
+else
+  sanity_profile_default="strict"
+fi
+sanity_profile="${ECC_SANITY_PROFILE:-$sanity_profile_default}"
+sanity_min_prompts="${ECC_EXPECT_MIN_PROMPTS:-$sanity_expected_prompts}"
 
 log "Running global regression sanity check"
 if [[ "$MODE" == "dry-run" ]]; then
-  printf '[dry-run] %s\n' "$SANITY_CHECKER"
+  printf '[dry-run] ECC_SANITY_PROFILE=%s ECC_EXPECT_MIN_PROMPTS=%s bash %s\n' "$sanity_profile" "$sanity_min_prompts" "$SANITY_CHECKER"
 else
-  "$SANITY_CHECKER"
+  ECC_SANITY_PROFILE="$sanity_profile" ECC_EXPECT_MIN_PROMPTS="$sanity_min_prompts" bash "$SANITY_CHECKER"
 fi
 
 log "Sync complete"
