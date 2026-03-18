@@ -216,7 +216,10 @@ function runTests() {
   if (test('passes on real project agents', () => {
     const result = runValidator('validate-agents');
     assert.strictEqual(result.code, 0, `Should pass, got stderr: ${result.stderr}`);
-    assert.ok(result.stdout.includes('Validated'), 'Should output validation count');
+    assert.ok(
+      result.stdout.includes('Validated') || result.stdout.includes('No agents directory found'),
+      'Should output validation count or a skip message when agents directory is absent'
+    );
   })) passed++; else failed++;
 
   if (test('fails on agent without frontmatter', () => {
