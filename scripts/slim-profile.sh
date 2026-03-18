@@ -50,10 +50,14 @@ if [[ "$CURRENT_BRANCH" != "main-slim" ]]; then
 fi
 
 # Keep lists (edit as needed)
-# 中文说明：此配置以“instinct/evolve/skill-create”工作流为主。
+# 中文说明：此配置为“极简 + 长期维护”预设：
+# - continuous-learning-v2：核心 instinct/evolve 工作流
+# - configure-ecc：后续扩展/重装时的交互式安装入口
+# - skill-stocktake：用于周期性盘点技能与命令，降低长期漂移风险
 KEEP_SKILLS=(
   continuous-learning-v2
-  continuous-learning
+  configure-ecc
+  skill-stocktake
 )
 
 KEEP_COMMANDS=(
