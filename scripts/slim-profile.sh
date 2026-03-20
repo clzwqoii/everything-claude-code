@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Slim profile for ECC fork branch (main-slim)
-# Tech stack preset: frontend + python + php
+# ECC 精简配置脚本（用于 main-slim 分支）
+# 技术栈预设：frontend + python + php
 # 中文说明：按保留清单裁剪仓库内容，生成精简版分支。
 # 中文说明：建议在裁剪完成后按下列顺序执行（手动命令，不由本脚本自动执行）：
 # 1) 复核改动：git status && git diff --stat
@@ -11,7 +11,8 @@ set -euo pipefail
 #    - Claude Code 侧安装：在仓库根目录执行 ./install.sh --dry-run typescript php python  
 #    - Codex 侧同步：在仓库根目录执行 bash scripts/sync-ecc-to-codex.sh
 # 4) 验证命令是否可用：
-#    /skill-create
+#    /learn
+#    /eval
 #    /instinct-status
 #    /instinct-import <file>
 #    /instinct-export
@@ -49,7 +50,7 @@ if [[ "$CURRENT_BRANCH" != "main-slim" ]]; then
   sleep 3
 fi
 
-# Keep lists (edit as needed)
+# 保留清单（按需调整）
 # 中文说明：此配置为“极简 + 长期维护”预设：
 # - continuous-learning-v2：核心 instinct/evolve 工作流
 # - configure-ecc：后续扩展/重装时的交互式安装入口
@@ -58,15 +59,63 @@ KEEP_SKILLS=(
   continuous-learning-v2
   configure-ecc
   skill-stocktake
+  # 中文说明：/eval 推荐配套该技能；若本地没有可从 GitHub 拉取后保留。
+  eval-harness
 )
 
+# 中文说明：命令执行顺序建议如下（从日常到周期性）：
+# 1) /learn            -> 先沉淀阶段经验
+# 2) /eval             -> 再按标准做验收评估
+# 3) /instinct-status  -> 查看当前学习状态
+# 4) /instinct-export  -> 先导出备份（可选）
+# 5) /instinct-import  -> 需要时导入外部经验
+# 6) /evolve           -> 周期性聚类演化
+# 7) /promote          -> 将高价值项目直觉提升为全局
+# 8) /projects         -> 跨项目巡检与对比
+# 中文说明：推荐节奏
+# - 每天/每阶段：1 -> 2 -> 3
+# - 每周：6 -> 7 -> 8
+# - 迁移/换机：4 -> 5 -> 3
+
 KEEP_COMMANDS=(
-  skill-create.md
+  # 顺序 1：先做“学习沉淀”。
+  # 作用：提炼当前会话中的模式、踩坑与可复用经验。
+  # 步骤：1) 阶段结束时执行 2) 审核提炼结果 3) 需要时转为 instinct/skill。
+  learn.md
+
+  # 顺序 2：再做“验收评估”。
+  # 作用：按验收标准进行结构化评估（通过/评分/量表）。
+  # 步骤：1) 定义验收标准 2) 执行 /eval 3) 根据报告补齐缺口。
+  eval.md
+
+  # 顺序 3：查看学习状态与置信度变化。
+  # 作用：查看当前 instinct/learning 状态与统计。
+  # 步骤：1) 日开始或阶段结束执行 2) 检查新增与置信度 3) 决定后续整理动作。
   instinct-status.md
-  instinct-import.md
+
+  # 顺序 4（可选）：导出备份，建议在重大改动前执行。
+  # 作用：导出 instincts，便于备份、迁移、跨环境同步。
+  # 步骤：1) 执行导出 2) 保存导出文件 3) 在目标环境用 /instinct-import 导入。
   instinct-export.md
+
+  # 顺序 5（可选）：导入外部经验后再校验状态。
+  # 作用：从文件导入 instincts，快速恢复或共享经验库。
+  # 步骤：1) 准备导入文件 2) 执行导入 3) 用 /instinct-status 验证结果。
+  instinct-import.md
+
+  # 顺序 6：周期性执行聚类演化。
+  # 作用：聚类与演化 instincts，减少重复并提升可用性。
+  # 步骤：1) 累积一批 instincts 后执行 2) 复核聚类结果 3) 合并或拆分条目。
   evolve.md
+
+  # 顺序 7：把高价值结果提升到更稳定层级。
+  # 作用：将高价值 instinct 提升为更稳定的资产（如规则/技能候选）。
+  # 步骤：1) 选择高置信度条目 2) 执行提升 3) 人工确认最终落地内容。
   promote.md
+
+  # 顺序 8：最后做跨项目巡检，避免作用域污染。
+  # 作用：查看项目维度的学习资产与状态，避免跨项目污染。
+  # 步骤：1) 切换项目后执行 2) 校验作用域 3) 决定是否同步或隔离。
   projects.md
 )
 
