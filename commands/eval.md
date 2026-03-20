@@ -5,15 +5,18 @@ description: 按验收标准进行结构化评估（通过/评分/量表）
 command: /eval
 ---
 
-# Eval Command
+Eval Command
+============
 
 Manage eval-driven development workflow.
 
-## Usage
+Usage
+-----
 
 `/eval [define|check|report|list] [feature-name]`
 
-## Define Evals
+Define Evals
+------------
 
 `/eval define feature-name`
 
@@ -40,7 +43,8 @@ Created: $(date)
 
 2. Prompt user to fill in specific criteria
 
-## Check Evals
+Check Evals
+-----------
 
 `/eval check feature-name`
 
@@ -65,7 +69,8 @@ Regression: X/Y passing
 Status: IN PROGRESS / READY
 ```
 
-## Report Evals
+Report Evals
+------------
 
 `/eval report feature-name`
 
@@ -103,7 +108,8 @@ RECOMMENDATION
 [SHIP / NEEDS WORK / BLOCKED]
 ```
 
-## List Evals
+List Evals
+----------
 
 `/eval list`
 
@@ -117,7 +123,8 @@ feature-search    [5/5 passing] READY
 feature-export    [0/4 passing] NOT STARTED
 ```
 
-## Arguments
+Arguments
+---------
 
 $ARGUMENTS:
 - `define <name>` - Create new eval definition
