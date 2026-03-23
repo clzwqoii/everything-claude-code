@@ -65,7 +65,7 @@ KEEP_SKILLS=(
 
 # 中文说明：命令执行顺序建议如下（从日常到周期性）：
 # 1) /learn            -> 先沉淀阶段经验
-# 2) /eval             -> 再按标准做验收评估
+# 2) /eval check <feature-name>  -> 再按已定义标准做验收评估（首次可先 /eval define）
 # 3) /instinct-status  -> 查看当前学习状态
 # 4) /instinct-export  -> 先导出备份（可选）
 # 5) /instinct-import  -> 需要时导入外部经验
@@ -74,7 +74,7 @@ KEEP_SKILLS=(
 # 8) /projects         -> 跨项目巡检与对比
 # 中文说明：推荐节奏
 # - 每天/每阶段：1 -> 2 -> 3
-# - 每周：6 -> 7 -> 8
+# - 每周：6 -> 7 -> 3 -> 8（演化/提升后先复核状态，再做跨项目巡检）
 # - 迁移/换机：4 -> 5 -> 3
 
 KEEP_COMMANDS=(
@@ -85,7 +85,9 @@ KEEP_COMMANDS=(
 
   # 顺序 2：再做“验收评估”。
   # 作用：按验收标准进行结构化评估（通过/评分/量表）。
-  # 步骤：1) 定义验收标准 2) 执行 /eval 3) 根据报告补齐缺口。
+  # 步骤：1) 首次执行 /eval define <feature-name> 定义标准
+  #      2) 阶段执行 /eval check <feature-name>
+  #      3) 里程碑执行 /eval report <feature-name> 并补齐缺口。
   eval.md
 
   # 顺序 3：查看学习状态与置信度变化。
