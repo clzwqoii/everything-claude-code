@@ -13,6 +13,7 @@ set -euo pipefail
 # 4) 验证命令是否可用：
 #    /learn
 #    /eval
+#    /tdd
 #    /instinct-status
 #    /instinct-import <file>
 #    /instinct-export
@@ -55,17 +56,20 @@ fi
 # - continuous-learning-v2：核心 instinct/evolve 工作流
 # - configure-ecc：后续扩展/重装时的交互式安装入口
 # - skill-stocktake：用于周期性盘点技能与命令，降低长期漂移风险
+# - tdd-workflow：测试驱动开发（RED -> GREEN -> REFACTOR）
 KEEP_SKILLS=(
   continuous-learning-v2
   configure-ecc
   skill-stocktake
+  tdd-workflow
   # 中文说明：/eval 推荐配套该技能；若本地没有可从 GitHub 拉取后保留。
   eval-harness
 )
 
 # 中文说明：命令执行顺序建议如下（从日常到周期性）：
 # 1) /learn            -> 先沉淀阶段经验
-# 2) /eval check <feature-name>  -> 再按已定义标准做验收评估（首次可先 /eval define）
+# 2) /eval define/check <feature-name>  -> 定义并执行验收评估
+#    /tdd <requirement>                 -> 按 TDD 完成功能实现（可在 2) 内迭代）
 # 3) /instinct-status  -> 查看当前学习状态
 # 4) /instinct-export  -> 先导出备份（可选）
 # 5) /instinct-import  -> 需要时导入外部经验
@@ -86,9 +90,12 @@ KEEP_COMMANDS=(
   # 顺序 2：再做“验收评估”。
   # 作用：按验收标准进行结构化评估（通过/评分/量表）。
   # 步骤：1) 首次执行 /eval define <feature-name> 定义标准
-  #      2) 阶段执行 /eval check <feature-name>
-  #      3) 里程碑执行 /eval report <feature-name> 并补齐缺口。
+  #      2) 开发阶段执行 /tdd <requirement>（测试先行）
+  #      3) 阶段执行 /eval check <feature-name>
+  #      4) 里程碑执行 /eval report <feature-name> 并补齐缺口。
+
   eval.md
+  tdd.md
 
   # 顺序 3：查看学习状态与置信度变化。
   # 作用：查看当前 instinct/learning 状态与统计。
@@ -122,7 +129,8 @@ KEEP_COMMANDS=(
 )
 
 KEEP_AGENTS=(
-  # 中文说明：该工作流主要依赖命令与技能，不依赖专门 agent。
+  # 中文说明：/tdd 对应的执行代理。
+  tdd-guide.md
 )
 
 KEEP_RULE_DIRS=(
