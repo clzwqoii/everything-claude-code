@@ -8,10 +8,10 @@ set -euo pipefail
 # 1) 复核改动：git status && git diff --stat
 # 2) 提交裁剪：git add -A && git commit -m "chore: apply slim profile"
 # 3) 将当前精简配置同步到本机使用环境（按你的使用方式二选一）：
-#    - Claude Code 侧安装：在仓库根目录执行 ./install.sh --dry-run typescript php python  
+#    - Claude Code 侧安装：在仓库根目录执行 ./install.sh --dry-run typescript php python PyTorch
 #    - Codex 侧同步：在仓库根目录执行 bash scripts/sync-ecc-to-codex.sh
 # 4) 验证命令是否可用：
-#    /learn
+#    /learn-eval
 #    /eval
 #    /tdd
 #    /instinct-status
@@ -26,14 +26,14 @@ set -euo pipefail
 # 推荐顺序（你现在这个场景）
 
 # 先在仓库执行精简脚本（如果还没执行）。
-# 执行 ./install.sh --dry-run typescript php python  （安装到 Claude Code）。
+# 执行 ./install.sh --dry-run typescript php python PyTorch （安装到 Claude Code）。
 # 执行 scripts/sync-ecc-to-codex.sh（同步到 Codex）。
 # 分别在两个工具里验证命令可用性。
 # 更稳妥做法
 
 # 先跑 dry-run 看变化：
 # bash sync-ecc-to-codex.sh --dry-run
-# ./install.sh --dry-run typescript php python  
+# ./install.sh --dry-run typescript php python  PyTorch
 # 确认后再正式执行。
 
 ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
@@ -57,17 +57,19 @@ fi
 # - configure-ecc：后续扩展/重装时的交互式安装入口
 # - skill-stocktake：用于周期性盘点技能与命令，降低长期漂移风险
 # - tdd-workflow：测试驱动开发（RED -> GREEN -> REFACTOR）
+# - v1.9 最小扩展：仅保留 PyTorch 工作流
 KEEP_SKILLS=(
   continuous-learning-v2
   configure-ecc
   skill-stocktake
   tdd-workflow
+  pytorch-patterns
   # 中文说明：/eval 推荐配套该技能；若本地没有可从 GitHub 拉取后保留。
   eval-harness
 )
 
 # 中文说明：命令执行顺序建议如下（从日常到周期性）：
-# 1) /learn            -> 先沉淀阶段经验
+# 1) /learn-eval       -> 先提炼并评估阶段经验（质量门禁 + 存储位置决策）
 # 2) /eval define/check <feature-name>  -> 定义并执行验收评估
 #    /tdd <requirement>                 -> 按 TDD 完成功能实现（可在 2) 内迭代）
 # 3) /instinct-status  -> 查看当前学习状态
@@ -83,9 +85,9 @@ KEEP_SKILLS=(
 
 KEEP_COMMANDS=(
   # 顺序 1：先做“学习沉淀”。
-  # 作用：提炼当前会话中的模式、踩坑与可复用经验。
-  # 步骤：1) 阶段结束时执行 2) 审核提炼结果 3) 需要时转为 instinct/skill。
-  learn.md
+  # 作用：提炼经验前先做质量门禁，并决定保存到全局或项目作用域。
+  # 步骤：1) 阶段结束时执行 2) 完成 checklist+verdict 3) 确认后保存/吸收。
+  learn-eval.md
 
   # 顺序 2：再做“验收评估”。
   # 作用：按验收标准进行结构化评估（通过/评分/量表）。
@@ -126,15 +128,18 @@ KEEP_COMMANDS=(
   # 作用：查看项目维度的学习资产与状态，避免跨项目污染。
   # 步骤：1) 切换项目后执行 2) 校验作用域 3) 决定是否同步或隔离。
   projects.md
+  # 删除超过30天且从未被推广过的待处理本能
+  prune.md
 )
 
 KEEP_AGENTS=(
-  # 中文说明：/tdd 对应的执行代理。
+  # 中文说明：TDD 与 PyTorch 构建排错。
   tdd-guide.md
+  pytorch-build-resolver.md
 )
 
 KEEP_RULE_DIRS=(
-  # 中文说明：你会写 TS/PHP，所以保留对应规则；skills 仍保持最小集。
+  # 中文说明：你会写 TS/PHP/Python，所以保留对应规则；PyTorch 复用 python 规则。
   common
   python
   typescript
@@ -236,7 +241,7 @@ main() {
 
   echo "[信息] 精简完成，请先执行：git status 检查改动"
   echo "[信息] 提交命令：git add -A && git commit -m \"chore: apply slim profile\""
-  echo "[信息] 然后安装/同步：./install.sh --dry-run typescript php python  或  bash scripts/sync-ecc-to-codex.sh"
+  echo "[信息] 然后安装/同步：./install.sh --dry-run typescript php python PyTorch 或  bash scripts/sync-ecc-to-codex.sh"
 }
 
 main "$@"

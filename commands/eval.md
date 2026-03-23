@@ -1,7 +1,6 @@
-
 ---
 name: eval
-description: 按验收标准进行结构化评估（通过/评分/量表）
+description: 2. 按验收标准进行结构化评估（通过/评分/量表）:/eval define 评估功能名(自定义评估标准)->/eval check feature-name(检查/验收)->/eval report feature-name(输出完整报告和发布建议)->/eval list(随时查看全局进度)
 command: /eval
 ---
 

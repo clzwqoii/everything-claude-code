@@ -1,6 +1,6 @@
 ---
 name: instinct-export
-description: Export instincts from project/global scope to a file
+description: 导出 instincts，便于备份、迁移、跨环境同步。
 command: /instinct-export
 ---
 

@@ -1,6 +1,6 @@
 ---
 name: projects
-description: List known projects and their instinct statistics
+description: 6. 查看项目维度的学习资产与状态，避免跨项目污染。
 command: true
 ---
 

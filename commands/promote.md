@@ -1,6 +1,6 @@
 ---
 name: promote
-description: Promote project-scoped instincts to global scope
+description: 5. 将高价值 instinct 提升为更稳定的资产（如规则/技能候选）。
 command: true
 ---
 
