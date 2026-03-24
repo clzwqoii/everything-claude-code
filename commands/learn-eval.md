@@ -28,27 +28,29 @@ Look for:
 
 4. Draft the skill file using this format:
 
+> **Language rule**: All generated content (description, headings, Problem/Solution/When to Use sections) MUST be written in 简体中文. Only code examples, file paths, and technical identifiers remain in English.
+
 ```markdown
 ---
 name: pattern-name
-description: "Under 130 characters"
+description: "130 字符以内的简体中文描述"
 user-invocable: false
 origin: auto-extracted
 ---
 
-# [Descriptive Pattern Name]
+# [描述性模式名称]
 
-**Extracted:** [Date]
-**Context:** [Brief description of when this applies]
+**提取时间:** [Date]
+**适用场景:** [简要描述何时适用]
 
-## Problem
-[What problem this solves - be specific]
+## 问题
+[具体描述解决什么问题]
 
-## Solution
-[The pattern/technique/workaround - with code examples]
+## 解决方案
+[模式/技巧/变通方法 — 含代码示例]
 
-## When to Use
-[Trigger conditions]
+## 触发条件
+[何时使用此模式]
 ```
 
 5. **Quality gate — Checklist + Holistic verdict**
@@ -92,15 +94,15 @@ origin: auto-extracted
 ## Output Format for Step 5
 
 ```
-### Checklist
-- [x] skills/ grep: no overlap (or: overlap found → details)
-- [x] MEMORY.md: no overlap (or: overlap found → details)
-- [x] Existing skill append: new file appropriate (or: should append to [X])
-- [x] Reusability: confirmed (or: one-off → Drop)
+### 检查清单
+- [x] skills/ 搜索: 无重叠（或: 发现重叠 → 详情）
+- [x] MEMORY.md: 无重叠（或: 发现重叠 → 详情）
+- [x] 现有 skill 追加: 需要新文件（或: 应追加到 [X]）
+- [x] 可复用性: 确认可复用（或: 一次性修复 → Drop）
 
-### Verdict: Save / Improve then Save / Absorb into [X] / Drop
+### 判定: Save / Improve then Save / Absorb into [X] / Drop
 
-**Rationale:** (1-2 sentences explaining the verdict)
+**理由:** （1-2 句解释判定原因）
 ```
 
 ## Design Rationale
