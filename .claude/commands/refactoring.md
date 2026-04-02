@@ -1,23 +1,20 @@
 ---
-name: feature-development
-description: Workflow command scaffold for feature-development in everything-claude-code.
+name: refactoring
+description: Workflow command scaffold for refactoring in everything-claude-code.
 allowed_tools: ["Bash", "Read", "Write", "Grep", "Glob"]
 ---
 
-# /feature-development
+# /refactoring
 
-Use this workflow when working on **feature-development** in `everything-claude-code`.
+Use this workflow when working on **refactoring** in `everything-claude-code`.
 
 ## Goal
 
-Standard feature implementation workflow
+Code refactoring and cleanup workflow
 
 ## Common Files
 
-- `skills/remotion-video-creation/rules/assets/*`
-- `.opencode/*`
-- `.opencode/plugins/*`
-- `**/*.test.*`
+- `src/**/*`
 
 ## Suggested Sequence
 
@@ -28,9 +25,9 @@ Standard feature implementation workflow
 
 ## Typical Commit Signals
 
-- Add feature implementation
-- Add tests for feature
-- Update documentation
+- Ensure tests pass before refactor
+- Refactor code structure
+- Verify tests still pass
 
 ## Notes
 
